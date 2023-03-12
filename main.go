@@ -28,6 +28,8 @@ func main() {
 
 		priceCh := make(chan int)
 
+		// Start a go routine that will send price updates the on the price channel.
+		// These price updates will be sent back to the client.
 		go generateCryptoPrice(r.Context(), priceCh)
 
 		for price := range priceCh {
@@ -54,26 +56,43 @@ func main() {
 	http.ListenAndServe(":4444", nil)
 }
 
+// generateCryptoPrice generates price as random integer and sends it the
+// provided channel every 1 second.
 func generateCryptoPrice(ctx context.Context, priceCh chan<- int) {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
+
+	ticker := time.NewTicker(time.Second)
 
 outerloop:
 	for {
 		select {
 		case <-ctx.Done():
 			break outerloop
-		default:
+		case <-ticker.C:
 			p := r.Intn(100)
 			priceCh <- p
 		}
-		time.Sleep(time.Second)
 	}
+
+	ticker.Stop()
 
 	close(priceCh)
 
 	fmt.Println("generateCryptoPrice: Finished geenrating")
 }
 
+// formatServerSentEvent takes name of an event and any kind of data and transforms
+// into a server sent event payload structure.
+// Data is sent as a json object, { "data": <your_data> }.
+//
+// Example:
+//
+//	Input:
+//		event="price-update"
+//		data=10
+//	Output:
+//		event: price-update\n
+//		data: "{\"data\":10}"\n\n
 func formatServerSentEvent(event string, data any) (string, error) {
 	m := map[string]any{
 		"data": data,

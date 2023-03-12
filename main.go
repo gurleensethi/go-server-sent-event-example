@@ -22,6 +22,12 @@ func main() {
 	})
 
 	http.HandleFunc("/crypto-price", func(w http.ResponseWriter, r *http.Request) {
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			http.Error(w, "SSE not supported", http.StatusInternalServerError)
+			return
+		}
+
 		fmt.Println("Request received for price...")
 
 		w.Header().Set("Content-Type", "text/event-stream")
@@ -45,9 +51,7 @@ func main() {
 				break
 			}
 
-			if f, ok := w.(http.Flusher); ok {
-				f.Flush()
-			}
+			flusher.Flush()
 		}
 
 		fmt.Println("Finished sending price updates...")

@@ -1,0 +1,39 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Price</title>
+</head>
+
+<body>
+    <h1>Crypto Price</h1>
+
+    <p id="price" style="font-size:40px;">Loading price...</p>
+
+    <script>
+        const priceEl = document.getElementById("price");
+
+        const es = new EventSource("/crypto-price");
+        es.onerror = (err) => {
+            console.log("onerror", err)
+        };
+
+        es.onmessage = (msg) => {
+            console.log("onmessage", msg)
+        };
+
+        es.onopen = (...args) => {
+            console.log("onopen", args)
+        };
+
+        es.addEventListener("price-update", (event) => {
+            const parsedData = JSON.parse(event.data);
+            const price = parsedData.data;
+            priceEl.innerText = price;
+        });
+    </script>
+</body>
+
+</html>

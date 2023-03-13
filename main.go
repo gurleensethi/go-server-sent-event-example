@@ -104,9 +104,9 @@ func formatServerSentEvent(event string, data any) (string, error) {
 
 	buff := bytes.NewBuffer([]byte{})
 
-	e := json.NewEncoder(buff)
+	encoder := json.NewEncoder(buff)
 
-	err := e.Encode(m)
+	err := encoder.Encode(m)
 	if err != nil {
 		return "", err
 	}
